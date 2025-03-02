@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {ShaderUtil} from '../utils/shader-util';
-import {vertexShader} from '../shaders/vertex-shader';
-import {fragmentShader} from '../shaders/fragment-shader';
+import vertexShader from '../shaders/vertex-shader.glsl';
+import fragmentShader from '../shaders/fragment-shader.glsl';
 
 export interface WebGlContext extends WebGL2RenderingContext {
   fClear: () => WebGlContext;
