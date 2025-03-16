@@ -1,28 +1,25 @@
 import {Injectable} from '@angular/core';
-import {ShaderUtil} from '../utils/shader-util';
-import vertexShader from '../shaders/vertex-shader.glsl';
-import fragmentShader from '../shaders/fragment-shader.glsl';
-
-export interface WebGlContext extends WebGL2RenderingContext {
-  fClear: () => WebGlContext;
-  fSetSize: (w: number, h: number) => WebGlContext;
-  fCreateArrayBuffer: (array: Float32Array<ArrayBuffer>, isStatic?: boolean) => WebGLBuffer;
-}
+import {
+  ATTR_NORMAL_LOC,
+  ATTR_POSITION_LOC,
+  ATTR_UV_LOC
+} from '../constants/webgl-renderer.constants';
+import {MeshVAO, Params, WebGlContext} from '../../types/webgl-renderer.service';
+import {TextShader} from '../models/text-shader';
+import {Model} from '../models/model';
 
 @Injectable()
 export class WebglRendererService {
-  public renderLoopParams = {
+  public renderLoopParams: Params = {
     gVertCount: 0,
     uAngle: 0,
     gPointSize: 0,
     gPointSizeStep: 3,
     gAngle: 0,
     gAngleStep: Math.PI / 180 * 90,
+    gShader: null,
+    gModel: null,
   };
-
-  public uPointSizeLoc: WebGLUniformLocation | null = null;
-
-  public uAngleLoc: WebGLUniformLocation | null = null;
 
   public gl?: WebGlContext;
 
@@ -58,6 +55,72 @@ export class WebglRendererService {
       this.bindBuffer(this.ARRAY_BUFFER, null);
       return buff;
     }
+
+    // Turns arrays into GL buffers, then setup a VAO that will predefine the buffers to standard shader attributes.
+    gl.fCreateMeshVAO = function (name: string, arrIdx: number[] | null, arrVert: number[] | null, arrNorm: number[] | null, arrUV: number[] | null) {
+      if (!this.mMeshCache) {
+        this.mMeshCache = {};
+      }
+
+      let rtn: MeshVAO = {
+        drawMode: this.TRIANGLES,
+        vao: null,
+        buffVertices: null,
+        vertexComponentLen: -1,
+        vertexCount: -1,
+        buffNormals: null,
+        buffUV: null,
+        buffIndex: null,
+        indexCount: -1,
+      };
+
+      // create and bind vao.
+      rtn.vao = this.createVertexArray();
+      this.bindVertexArray(rtn.vao); // bind it so all the calls to vertexAttribPointer/enableVertexAttribArray is saved to the vao.
+
+      if (arrVert) {
+        rtn.buffVertices = this.createBuffer();
+        rtn.vertexComponentLen = 3;
+        rtn.vertexCount = arrVert.length / rtn.vertexComponentLen;
+
+        this.bindBuffer(this.ARRAY_BUFFER, rtn.buffVertices);
+        this.bufferData(this.ARRAY_BUFFER, new Float32Array(arrVert), this.STATIC_DRAW);
+        this.enableVertexAttribArray(ATTR_POSITION_LOC);
+        this.vertexAttribPointer(ATTR_POSITION_LOC, 3, this.FLOAT, false, 0, 0);
+      }
+
+      if (arrNorm) {
+        rtn.buffNormals = this.createBuffer();
+        this.bindBuffer(this.ARRAY_BUFFER, rtn.buffNormals);
+        this.bufferData(this.ARRAY_BUFFER, new Float32Array(arrNorm), this.STATIC_DRAW);
+        this.enableVertexAttribArray(ATTR_NORMAL_LOC);
+        this.vertexAttribPointer(ATTR_NORMAL_LOC, 3, this.FLOAT, false, 0, 0);
+      }
+
+      if (arrUV) {
+        rtn.buffUV = this.createBuffer();
+        this.bindBuffer(this.ARRAY_BUFFER, rtn.buffUV);
+        this.bufferData(this.ARRAY_BUFFER, new Float32Array(arrUV), this.STATIC_DRAW);
+        this.enableVertexAttribArray(ATTR_UV_LOC);
+        this.vertexAttribPointer(ATTR_UV_LOC, 2, this.FLOAT, false, 0, 0);
+      }
+
+      if (arrIdx) {
+        rtn.buffIndex = this.createBuffer();
+        rtn.indexCount = arrIdx.length;
+        this.bindBuffer(this.ELEMENT_ARRAY_BUFFER, rtn.buffIndex);
+        this.bufferData(this.ELEMENT_ARRAY_BUFFER, new Uint16Array(arrIdx), this.STATIC_DRAW);
+        this.bindBuffer(this.ELEMENT_ARRAY_BUFFER, null);
+      }
+
+      this.bindVertexArray(null);
+      this.bindBuffer(this.ARRAY_BUFFER, null);
+
+      this.mMeshCache[name] = rtn;
+
+      return rtn;
+    }
+
     return gl;
   }
 
@@ -71,25 +134,9 @@ export class WebglRendererService {
       throw new Error('Webgl instance has not been initialized.');
     }
 
-    const prog = ShaderUtil.shaderProgram(gl, vertexShader, fragmentShader);
-    if (!prog) {
-      throw Error('Something went wrong');
-    }
-
-    gl.useProgram(prog);
-    const aPosLoc = gl.getAttribLocation(prog, 'a_position');
-    this.uAngleLoc = gl.getUniformLocation(prog, 'uAngle');
-    this.uPointSizeLoc = gl.getUniformLocation(prog, 'uPointSize');
-    gl.useProgram(null);
-
-    const arrVertices = new Float32Array([0, 0, 0]);
-    const buffVertices = gl.fCreateArrayBuffer(arrVertices);
-    this.renderLoopParams.gVertCount = arrVertices.length / 3;
-
-    gl.useProgram(prog); // activate the shader.
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffVertices);
-    gl.enableVertexAttribArray(aPosLoc); // enable the position attribute in the shader.
-    gl.vertexAttribPointer(aPosLoc, 3, gl.FLOAT, false, 0, 0); // set which buffer the attribute will pull its data from.
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    this.renderLoopParams.gShader = new TextShader(gl);
+    const mesh = gl.fCreateMeshVAO('dots', null, [0, 0, 0, 0.1, 0.1, 0, 0.1, -0.1, 0, -0.1, -0.1, 0, -0.1, 0.1, 0], null, null);
+    mesh.drawMode = gl.POINTS;
+    this.renderLoopParams.gModel = new Model(mesh);
   }
 }

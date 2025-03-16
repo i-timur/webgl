@@ -1,5 +1,5 @@
 import {inject, Injectable} from '@angular/core';
-import {RENDER_LOOP_PARAMS_TOKEN} from '../tokens/render-loop.tokens';
+import {RENDER_LOOP_PARAMS_TOKEN} from '../constants/render-loop.constants';
 import {WebglRendererService} from './webgl-renderer.service';
 import {DOCUMENT} from '@angular/common';
 import Stats, {Panel} from 'stats.js';

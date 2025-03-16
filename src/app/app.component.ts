@@ -1,5 +1,5 @@
 import {AfterViewInit, Component, ElementRef, inject, viewChild} from '@angular/core';
-import {RENDER_LOOP_PARAMS_TOKEN} from './tokens/render-loop.tokens';
+import {RENDER_LOOP_PARAMS_TOKEN} from './constants/render-loop.constants';
 import {WebglRendererService} from './services/webgl-renderer.service';
 import {RenderLoopService} from './services/render-loop.service';
 import {render} from './utils/render-util';
