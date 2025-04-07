@@ -8,5 +8,5 @@ export function render(webglRenderer: WebglRendererService, dt: number): void {
   const {gShader, gModel, gPointSizeStep, gAngleStep} = renderLoopParams;
   renderLoopParams.gPointSize += gPointSizeStep * dt;
   renderLoopParams.gAngle += gAngleStep * dt;
-  gShader?.activate().set(Math.sin(renderLoopParams.gPointSize) * 10 + 30, renderLoopParams.gAngle).render(gModel);
+  gShader?.activate().render(gModel);
 }

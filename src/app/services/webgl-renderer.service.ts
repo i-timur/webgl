@@ -7,6 +7,8 @@ import {
 import {MeshVAO, Params, WebGlContext} from '../../types/webgl-renderer.service';
 import {TextShader} from '../models/text-shader';
 import {Model} from '../models/model';
+import {TestShader} from '../models/test-shader';
+import {GridAxis} from '../models/grid-axis';
 
 @Injectable()
 export class WebglRendererService {
@@ -56,12 +58,10 @@ export class WebglRendererService {
       return buff;
     }
 
-    // Turns arrays into GL buffers, then setup a VAO that will predefine the buffers to standard shader attributes.
-    gl.fCreateMeshVAO = function (name: string, arrIdx: number[] | null, arrVert: number[] | null, arrNorm: number[] | null, arrUV: number[] | null) {
-      if (!this.mMeshCache) {
-        this.mMeshCache = {};
-      }
+    gl.mMeshCache = {};
 
+    // Turns arrays into GL buffers, then setup a VAO that will predefine the buffers to standard shader attributes.
+    gl.fCreateMeshVAO = function (name: string, arrVert: number[] | null, arrIdx?: number[] | null, arrNorm?: number[] | null, arrUV?: number[] | null) {
       let rtn: MeshVAO = {
         drawMode: this.TRIANGLES,
         vao: null,
@@ -134,9 +134,9 @@ export class WebglRendererService {
       throw new Error('Webgl instance has not been initialized.');
     }
 
-    this.renderLoopParams.gShader = new TextShader(gl);
-    const mesh = gl.fCreateMeshVAO('dots', null, [0, 0, 0, 0.1, 0.1, 0, 0.1, -0.1, 0, -0.1, -0.1, 0, -0.1, 0.1, 0], null, null);
-    mesh.drawMode = gl.POINTS;
-    this.renderLoopParams.gModel = new Model(mesh);
+    this.renderLoopParams.gShader = new TestShader(gl, [0.8, 0.8, 0.8, 1, 0, 0, 0, 1, 0, 0, 0, 1]) // Gray, Red, Green, Blue
+    // const mesh = gl.fCreateMeshVAO('lines', [0, 1, 0, 0, -1, 0, -1, 0, 0, 1, 0, 0]);
+    // mesh.drawMode = gl.LINES
+    this.renderLoopParams.gModel = new Model(GridAxis.createMesh(gl));
   }
 }

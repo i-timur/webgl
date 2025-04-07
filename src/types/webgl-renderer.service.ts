@@ -1,5 +1,6 @@
 import {Model} from '../app/models/model';
 import {TextShader} from '../app/models/text-shader';
+import {Shader} from '../app/models/shader';
 
 export interface MeshVAO {
   drawMode: number;
@@ -18,7 +19,7 @@ export interface WebGlContext extends WebGL2RenderingContext {
   fSetSize: (w: number, h: number) => WebGlContext;
   fCreateArrayBuffer: (array: Float32Array<ArrayBuffer>, isStatic?: boolean) => WebGLBuffer;
   mMeshCache: Record<string, MeshVAO>;
-  fCreateMeshVAO: (name: string, arrIdx: number[] | null, arrVert: number[] | null, arrNorm: number[] | null, arrUV: number[] | null) => MeshVAO;
+  fCreateMeshVAO: (name: string, arrVert: number[] | null, arrIdx?: number[] | null, arrNorm?: number[] | null, arrUV?: number[] | null) => MeshVAO;
 }
 
 export interface Params {
@@ -28,6 +29,6 @@ export interface Params {
   gPointSizeStep: number,
   gAngle: number,
   gAngleStep: number,
-  gShader: TextShader | null;
+  gShader: Shader | null;
   gModel: Model | null;
 }

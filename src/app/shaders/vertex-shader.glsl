@@ -1,16 +1,13 @@
 #version 300 es
 
-in vec3 a_position;
+in vec3 a_position; // Standard position data.
+layout(location = 4) in float a_color; // Will hold the 4th custom position of the custom position buffer.
 
-uniform mediump float uPointSize;
-uniform float uAngle;
+uniform vec3 uColor[4];
+
+out lowp vec4 color; // Color to send to fragment shader.
 
 void main() {
-  gl_PointSize = uPointSize;
-  gl_Position = vec4(
-  cos(uAngle) * 0.8 + a_position.x,
-  sin(uAngle) * 0.8 + a_position.y,
-  a_position.z,
-  1.0
-  );
+  color = vec4(uColor[int(a_color)], 1.0); // Using the 4th float as a color index.
+  gl_Position = vec4(a_position, 1.0);
 }

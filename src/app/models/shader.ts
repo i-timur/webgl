@@ -6,13 +6,11 @@ import {UniformLocation} from '../../types/shader';
 
 export abstract class Shader {
   program: WebGLProgram;
-  gl: WebGlContext;
   attribLoc: AttribLoc;
   uniformLoc: UniformLocation;
 
-  constructor(gl: WebGlContext, vertexShader: string, fragmentShader: string) {
+  constructor(protected gl: WebGlContext, vertexShader: string, fragmentShader: string) {
     this.program = ShaderUtil.shaderProgram(gl, vertexShader, fragmentShader);
-    this.gl = gl;
     this.gl.useProgram(this.program);
     this.attribLoc = ShaderUtil.getStandardAttribLocations(this.gl, this.program);
     this.uniformLoc = {uAngle: null, uPointSize: null};
